@@ -30,6 +30,9 @@ def _default_page_url() -> str:
 
     BRIEFING_PAGE_URL이 명시돼 있으면 그 값을 쓰고, 없으면 GitHub Actions가
     자동 주입하는 GITHUB_REPOSITORY("owner/repo")로 GitHub Pages 주소를 계산합니다.
+
+    저장소 이름이 "{owner}.github.io"이면 GitHub이 이를 "사용자 페이지"로 취급해
+    저장소 이름 없이 루트 도메인으로 서빙하므로, 그 경우는 별도로 처리합니다.
     """
     explicit = os.environ.get("BRIEFING_PAGE_URL")
     if explicit:
@@ -38,6 +41,8 @@ def _default_page_url() -> str:
     repo = os.environ.get("GITHUB_REPOSITORY")
     if repo and "/" in repo:
         owner, name = repo.split("/", 1)
+        if name.lower() == f"{owner.lower()}.github.io":
+            return f"https://{owner}.github.io/"
         return f"https://{owner}.github.io/{name}/"
 
     return "https://example.com/"
