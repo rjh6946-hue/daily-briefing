@@ -19,6 +19,7 @@ from pathlib import Path
 from config import get_settings
 from ecos_client import get_daily_snapshot
 from formatter import build_category_briefings, build_preview_text, today_label
+from image_client import fetch_images
 from kakao_client import send_text_message
 from kakao_token_manager import KakaoTokenManager
 from news_service import fetch_all_categories
@@ -59,7 +60,14 @@ def run() -> int:
             ecos_snapshot = None
             failed_sources.append("한국은행 ECOS")
 
-        html = render_page(briefings, today, ecos_snapshot)
+        all_articles = [article for b in briefings for article in ([b.headline] if b.headline else []) + b.rest]
+        try:
+            image_map = fetch_images(all_articles)
+        except Exception:
+            logger.exception("기사 이미지 조회 실패, 썸네일 없이 진행합니다.")
+            image_map = {}
+
+        html = render_page(briefings, today, ecos_snapshot, image_map)
         write_page(html, Path("docs/index.html"))
         logger.info("브리핑 페이지 생성 완료: docs/index.html")
 

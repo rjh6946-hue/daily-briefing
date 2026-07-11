@@ -119,6 +119,22 @@ CATEGORIES: List[NewsCategory] = [
         # 정부 정책 발표 우선 ("발표"는 무관한 기사(실적 발표 등)에도 매칭돼 제외함)
         headline_keywords=["정부", "정책", "국회", "법안", "규제", "개편", "대책"],
     ),
+    NewsCategory(
+        key="celebrity",
+        label="💕 연애 뉴스",
+        queries=["열애설", "럽스타그램", "공개 연애"],
+        color="#db2777",  # 핑크
+        max_items=6,
+        headline_keywords=["열애", "공개 연애", "결혼 발표", "럽스타그램"],
+    ),
+    NewsCategory(
+        key="youth_policy",
+        label="🌱 청년정책",
+        queries=["청년 정책", "청년 지원금", "청년 주택"],
+        color="#4f46e5",  # 인디고
+        max_items=6,
+        headline_keywords=["청년", "지원금", "청년정책", "청년주택"],
+    ),
 ]
 
 
