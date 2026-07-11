@@ -9,19 +9,20 @@ from zoneinfo import ZoneInfo
 from config import BIGTECH_RSS_SOURCES, CATEGORIES, POLICY_RSS_SOURCES, NewsCategory, Settings
 from news_service import Article
 from rss_service import latest_within_window
+from translate_client import translate_to_korean
 
 KST = ZoneInfo("Asia/Seoul")
 
 # 카카오 text 템플릿 실제 제한(200자)에 맞추기 위한 헤드라인 미리보기 길이
 _HEADLINE_PREVIEW_MAX_LENGTH = 24
 
-# 카테고리별 헤드라인 우선 소스: (RSS 소스 목록, 출처 라벨, 파급력 키워드 가중치 사용 여부)
-# 빅테크는 "공식 발표가 있으면 최우선"이라 최신순 그대로 사용하고,
-# 정책은 "파급력이 가장 큰 항목"을 원하므로 headline_keywords로 가중치를 준다.
+# 카테고리별 헤드라인 우선 소스: (RSS 소스 목록, 출처 라벨, 파급력 키워드 가중치 사용 여부, 한글 번역 필요 여부)
+# 빅테크는 "공식 발표가 있으면 최우선"이라 최신순 그대로 사용하고 영어 제목을 번역하며,
+# 정책(한국어 원문)은 "파급력이 가장 큰 항목"을 원하므로 headline_keywords로 가중치를 준다.
 # 없는 카테고리(경제)는 네이버 기반 선정만 사용한다.
 _RSS_SOURCES_BY_CATEGORY = {
-    "ai_tech": (BIGTECH_RSS_SOURCES, "빅테크 공식 발표", False),
-    "policy": (POLICY_RSS_SOURCES, "정부 공식 자료", True),
+    "ai_tech": (BIGTECH_RSS_SOURCES, "빅테크 공식 발표", False, True),
+    "policy": (POLICY_RSS_SOURCES, "정부 공식 자료", True, False),
 }
 
 _DEFAULT_HEADLINE_SOURCE = "언론사"
@@ -83,14 +84,13 @@ def build_category_briefings(
         rest = articles
 
         if rss_config:
-            sources, label_prefix, use_impact_keywords = rss_config
+            sources, label_prefix, use_impact_keywords, needs_translation = rss_config
             impact_keywords = category.headline_keywords if use_impact_keywords else None
             rss_item, failed = latest_within_window(sources, settings, impact_keywords=impact_keywords)
             failed_sources.extend(failed)
             if rss_item:
-                headline = Article(
-                    title=rss_item.title, link=rss_item.link, description="", published_at=rss_item.published_at
-                )
+                title = translate_to_korean(rss_item.title) if needs_translation else rss_item.title
+                headline = Article(title=title, link=rss_item.link, description="", published_at=rss_item.published_at)
                 headline_source = f"{label_prefix} · {rss_item.source_label}"
                 rest = articles[: max(category.max_items - 1, 0)]
 
